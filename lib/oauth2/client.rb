@@ -131,20 +131,25 @@ module OAuth2
     # @param [Class] class of access token for easier subclassing OAuth2::AccessToken
     # @return [AccessToken] the initialized AccessToken
     def get_token(params, access_token_opts = {}, access_token_class = AccessToken) # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
+      puts '>>> get_token'
       params = authenticator.apply(params)
       opts = {:raise_errors => options[:raise_errors], :parse => params.delete(:parse)}
       headers = params.delete(:headers) || {}
       if options[:token_method] == :post
+        puts 'FORCE_PARAMS', ENV['FORCE_PARAMS']
+        puts 'params', params
         if ENV['FORCE_PARAMS'] == 'true'
           opts[:params] = params
         else
           opts[:body] = params
+        end  
         opts[:headers] = {'Content-Type' => 'application/x-www-form-urlencoded'}
       else
         opts[:params] = params
         opts[:headers] = {}
       end
       opts[:headers].merge!(headers)
+      puts 'headers', opts[:headers]
       response = request(options[:token_method], token_url, opts)
       response_contains_token = response.parsed.is_a?(Hash) &&
                                 (response.parsed['access_token'] || response.parsed['id_token'])
